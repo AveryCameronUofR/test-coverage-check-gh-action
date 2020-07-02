@@ -1,13 +1,27 @@
 const core = require('@actions/core');
 
-function compareCoverage(filename){
+/**
+ * Compare coverage reports test coverage for given file.
+ * 
+ * Takes file name, compares test coverage of the file from previous and current 
+ * coverage XML reports. Uses regular expression to find test coverage results
+ * from each report for the file and the coverage value is in the first group of the match.
+ * 
+ * @since 2020.07.02
+ * @access public
+ * 
+ * @param {String} filename name of file to compare coverage
+ * @param {Number} minCoverage minimum coverage to pass check
+ * @param {Number} maxCoverageChange max coverage change to pass check
+ * 
+ * @return {Number} Change in coverage
+ */
+function compareCoverage(filename, minCoverage, maxCoverageChange){
   
 }
 
 /**
- * Coverage.xml files contain the test coverage of each file.
- * We need to compare coverage for the files to ensure test coverage 
- * did not lower substantially.
+ * Create a regular expression to find the filename and test coverage of the file.
  * 
  * makeRegEx returns a regular expression that matches the provided filename
  * for use with finding and comparing test coverage. The input filename 
@@ -16,7 +30,7 @@ function compareCoverage(filename){
  * @since 2020.07.02
  * @access public
  * 
- * @param {string} filename 
+ * @param {String} filename Name of file to match
  * 
  * @return {RegExp} Regular Expression that matches filename and provides coverage value as a group
  */
