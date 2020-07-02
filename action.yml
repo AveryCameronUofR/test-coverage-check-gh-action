@@ -1,13 +1,15 @@
-name: 'Wait'
-description: 'Wait a designated number of milliseconds'
+name: 'Test Coverage Change'
+description: 'Check test coverage change of changed files'
 inputs:
-  milliseconds:  # id of input
-    description: 'number of milliseconds to wait'
-    required: true
-    default: '1000'
+  minNewCoverage:  # minimum new coverage
+    description: 'minimum coverage a new file has to have to pass'
+    default: 80
+  maxCoverageChange: 
+    description: 'Max amount coverage can reduce and pass'
+    default: 5
 outputs:
-  time: # output will be available to future steps 
-    description: 'The message to output'
+  Coverage:
+    description: 'Coverage of changed files'
 runs:
   using: 'node12'
   main: 'dist/index.js'
