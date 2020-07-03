@@ -32,8 +32,10 @@ function compareCoverage(filename, minCoverage, maxCoverageChange){
  *
  * @return {RegExp} Regular Expression that matches filename and provides coverage value as a group.
  */
-function makeRegEx(filename){
-  return new RegExp(`<class name="\w*.py" filename="${filename}" complexity="\d*" line-rate="(\d*\.?\d*)" branch-rate=...>`)
+function makeRegEx(filename) {
+  return new RegExp(
+    `filename="${filename}" complexity="\\d*" line-rate="(\\d*\\.?\\d*)"`
+  );
 }
 
 // most @actions toolkit packages have async methods
