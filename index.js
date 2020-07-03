@@ -10,13 +10,17 @@ const { promises: fs } = require("fs");
  * @since 1.0.0
  *
  * @param {String} filename name of file to compare coverage.
- * @param {Number} minCoverage minimum coverage to pass check.
- * @param {Number} maxCoverageChange max coverage change to pass check.
- * 
- * @return {Number} Change in coverage.
+ *
+ * @return {Array} Change in coverage and current coverage of file.
  */
-function compareCoverage(filename, minCoverage, maxCoverageChange){
-  
+async function compareCoverage(filename) {
+  var coverageRegEx = makeRegEx(filename);
+  const originalCoverageReport = await fs.readFile("./coverage1.xml", "utf8");
+  const currentCoverageReport = await fs.readFile("./coverage.xml", "utf8");
+  var originalCoverage = coverageRegEx.exec(originalCoverageReport);
+  var currentCoverage = coverageRegEx.exec(currentCoverageReport);
+  var coverageChange = originalCoverage[1] - currentCoverage[1];
+  return [coverageChange, currentCoverage[1]];
 }
 
 /**
