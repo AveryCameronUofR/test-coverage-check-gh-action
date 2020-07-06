@@ -1,5 +1,5 @@
 const core = require("@actions/core");
-const fs = require('fs');
+const fs = require("fs");
 
 /**
  * Parse string to JSON object.
@@ -21,21 +21,21 @@ function parseJsonString(jsonString) {
  * Gets the coverage of added files.
  *
  * Takes the JSON file with Added file information and gets the
- * test coverage of the added files and returns an array of coverage. 
+ * test coverage of the added files and returns an array of coverage.
  *
  * @since 1.0.0
  *
  * @return {Array} Array of objects with file name and coverage.
  */
 function checkAddedFileCoverage() {
-  const files_added = fs.readFileSync(
-    `./files_added.json`,
-    "utf8"
-  );
+  const files_added = fs.readFileSync(`./files_added.json`, "utf8");
   var files_added_json = parseJsonString(files_added);
   var addedFileCoverage = [];
   files_added_json.forEach((file) => {
-    addedFileCoverage.push({filename: file, coverage: checkNewCoverage(file)});
+    addedFileCoverage.push({
+      filename: file,
+      coverage: checkNewCoverage(file),
+    });
   });
   return addedFileCoverage;
 }
@@ -65,23 +65,24 @@ function checkNewCoverage(filename) {
  *
  * Takes the JSON file with modified file information and gets the
  * test coverage of the modified files and returns an array of file name,
- * coverage and change in coverage. 
+ * coverage and change in coverage.
  *
  * @since 1.0.0
  *
  * @return {Array} Array of objects with file name and coverage and change in coverage.
  */
 function checkModifiedFileCoverage() {
-  const files_modified = fs.readFileSync(
-    `./files_modified.json`,
-    "utf8"
-  );
+  const files_modified = fs.readFileSync(`./files_modified.json`, "utf8");
   var files_modified_json = parseJsonString(files_modified);
   var modifiedFileCoverage = [];
   files_modified_json.forEach((file) => {
     coverage = compareCoverage(file);
     if (coverage !== null)
-      modifiedFileCoverage.push({filename: file, coverage: coverage[0], coverageChange: coverage[1]});
+      modifiedFileCoverage.push({
+        filename: file,
+        coverage: coverage[0],
+        coverageChange: coverage[1],
+      });
   });
   return modifiedFileCoverage;
 }
@@ -105,10 +106,8 @@ function compareCoverage(filename) {
   const currentCoverageReport = fs.readFileSync("./coverage.xml", "utf8");
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   var originalCoverage = coverageRegEx.exec(originalCoverageReport);
-  if (originalCoverage === null)
-    originalCoverage = currentCoverage;
-  if (currentCoverage === null)
-    return null;
+  if (originalCoverage === null) originalCoverage = currentCoverage;
+  if (currentCoverage === null) return null;
   var coverageChange = currentCoverage[1] - originalCoverage[1];
   return [currentCoverage[1], coverageChange];
 }
@@ -143,18 +142,17 @@ function makeRegEx(filename) {
  *
  * @param {Array} addedFileCoverage array of objects with filename and coverage.
  * @param {Array} minCoverage minimum coverage to pass.
- * 
- * @return {String} markdown table for added files. 
+ *
+ * @return {String} markdown table for added files.
  */
-function formatAddedCoverageReport(addedFileCoverage, minCoverage){
-  var report =`
+function formatAddedCoverageReport(addedFileCoverage, minCoverage) {
+  var report = `
   | Added Files | Coverage |
   |---|---|
-  `
-  addedFileCoverage.forEach(file => {
-    var unicode =  "&#9989;";
-    if (file.coverage < minCoverage)
-      unicode =  "&#10060;";
+  `;
+  addedFileCoverage.forEach((file) => {
+    var unicode = "&#9989;";
+    if (file.coverage < minCoverage) unicode = "&#10060;";
     report += `| ${file.filename} | ${file.coverage} ${unicode} |  \n`;
   });
   return report;
@@ -172,18 +170,21 @@ function formatAddedCoverageReport(addedFileCoverage, minCoverage){
  * @param {Array} modifiedFileCoverage array of objects with filename and coverage.
  * @param {Array} minCoverage minimum coverage to pass.
  * @param {Array} minCoverage maximum coverage to allow.
- * 
- * @return {String} markdown table for modified files and coverage. 
+ *
+ * @return {String} markdown table for modified files and coverage.
  */
-function formatModifiedCoverageReport(modifiedFileCoverage, minCoverage, maxCoverageChange){
-  var report =`
+function formatModifiedCoverageReport(
+  modifiedFileCoverage,
+  minCoverage,
+  maxCoverageChange
+) {
+  var report = `
   | Modified Files | Coverage | Change in Coverage |
   |---|---|---|
-  `
-  modifiedFileCoverage.forEach(file => {
-    var unicodeCoverage =  "&#9989;";
-    if (file.coverage < minCoverage )
-      unicodeCoverage =  "&#10060;";
+  `;
+  modifiedFileCoverage.forEach((file) => {
+    var unicodeCoverage = "&#9989;";
+    if (file.coverage < minCoverage) unicodeCoverage = "&#10060;";
     var unicodeCoverageChange = "&#9989;";
     if (file.coverageChange < maxCoverageChange)
       unicodeCoverageChange = "&#10060;";
@@ -199,9 +200,13 @@ async function run() {
     const maxCoverageChange = -1 * core.getInput("maxCoverageChange");
     var modifiedFileCoverage = checkModifiedFileCoverage();
     var addedFileCoverage = checkAddedFileCoverage();
-    
+
     var addedReport = formatAddedCoverageReport(addedFileCoverage, minCoverage);
-    var modifiedReport = formatModifiedCoverageReport(modifiedFileCoverage, minCoverage, maxCoverageChange);
+    var modifiedReport = formatModifiedCoverageReport(
+      modifiedFileCoverage,
+      minCoverage,
+      maxCoverageChange
+    );
   } catch (error) {
     core.setFailed(error.message);
   }
