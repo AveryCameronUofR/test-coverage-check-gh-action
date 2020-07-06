@@ -132,14 +132,46 @@ function makeRegEx(filename) {
   );
 }
 
+function formatAddedCoverageReport(addedFileCoverage, minCoverage){
+  var report =`
+  | Added Files | Coverage |
+  |---|---|
+  `
+  addedFileCoverage.forEach(file => {
+    var unicode =  "&#9989;";
+    if (file.coverage < minCoverage)
+      unicode =  "&#10060;";
+    report += `| ${file.filename} | ${file.coverage} ${unicode} |`;
+  });
+  return report;
+}
+
+function formatModifiedCoverageReport(modifiedFileCoverage, minCoverage, maxCoverageChange){
+  var report =`
+  | Modified Files | Coverage | Change in Coverage |
+  |---|---|---|
+  `
+  modifiedFileCoverage.forEach(file => {
+    var unicodeCoverage =  "&#9989;";
+    if (file.coverage < minCoverage )
+      unicodeCoverage =  "&#10060;";
+    var unicodeCoverageChange = "&#9989;";
+    if (file.coverageChange < maxCoverageChange)
+      unicodeCoverageChange = "&#10060;";
+    report += `| ${file.filename} | ${file.coverage} ${unicodeCoverage} |  ${file.coverageChange} ${unicodeCoverageChange} |  \n`;
+  });
+  return report;
+}
 // most @actions toolkit packages have async methods
 async function run() {
   try {
+    const minCoverage = core.getInput("minNewCoverage");
+    const maxCoverageChange = -1 * core.getInput("maxCoverageChange");
     var modifiedFileCoverage = checkModifiedFileCoverage();
     var addedFileCoverage = checkAddedFileCoverage();
-    console.log(modifiedFileCoverage)
-    const minCoverage = core.getInput("minNewCoverage");
-    const maxCoverageChange = core.getInput("maxCoverageChange");
+    
+    var addedReport = formatAddedCoverageReport(addedFileCoverage, minCoverage);
+    var modifiedReport = formatModifiedCoverageReport(modifiedFileCoverage, minCoverage, maxCoverageChange);
   } catch (error) {
     core.setFailed(error.message);
   }
