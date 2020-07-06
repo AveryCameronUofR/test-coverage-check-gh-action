@@ -1,5 +1,6 @@
 name: 'Test Coverage Change'
 description: 'Check test coverage change of changed files'
+icon: bar-chart
 inputs:
   minNewCoverage:  # minimum new coverage
     description: 'minimum coverage a new file has to have to pass'
