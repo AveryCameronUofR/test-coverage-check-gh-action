@@ -80,7 +80,8 @@ function checkModifiedFileCoverage() {
   var modifiedFileCoverage = [];
   files_modified_json.forEach((file) => {
     coverage = compareCoverage(file);
-    modifiedFileCoverage.push({filename: file, coverage: coverage[0], coverageChange: coverage[1]});
+    if (coverage !== null)
+      modifiedFileCoverage.push({filename: file, coverage: coverage[0], coverageChange: coverage[1]});
   });
   return modifiedFileCoverage;
 }
@@ -104,11 +105,11 @@ function compareCoverage(filename) {
   const currentCoverageReport = fs.readFileSync("./coverage.xml", "utf8");
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   var originalCoverage = coverageRegEx.exec(originalCoverageReport);
-  if (originalCoverage === null){
+  if (originalCoverage === null)
     originalCoverage = currentCoverage;
-  }
-  
-  var coverageChange = originalCoverage[1] - currentCoverage[1];
+  if (currentCoverage === null)
+    return null;
+  var coverageChange = currentCoverage[1] - originalCoverage[1];
   return [currentCoverage[1], coverageChange];
 }
 
