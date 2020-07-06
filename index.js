@@ -26,6 +26,18 @@ async function checkNewCoverage(filename) {
   return currentCoverage[1];
 }
 
+async function checkModifiedFileCoverage() {
+  const files_modified = await fs.readFile(
+    `${process.env.HOME}/files_modified.json`,
+    "utf8"
+  );
+  var files_modified_json = await parseJsonString(files_modified);
+  var modifiedFileCoverage = [];
+  files_modified_json.forEach((file) => {
+    modifiedFileCoverage.push(compareCoverage(file));
+  });
+}
+
 /**
  * Compare coverage reports test coverage for given file.
  *
