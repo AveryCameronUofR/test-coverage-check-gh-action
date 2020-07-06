@@ -1,11 +1,33 @@
 const core = require("@actions/core");
 const { promises: fs } = require("fs");
 
+/**
+ * Parse string to JSON object.
+ *
+ * Takes the JSON string object from the JSON files that hold modified
+ * and added file information and returns a JSON object.
+ *
+ * @since 1.0.0
+ *
+ * @param {String} jsonString JSON in string form.
+ *
+ * @return {JSON} Parsed JSON object.
+ */
 async function parseJsonString(jsonString) {
   const json = await JSON.parse(jsonString);
   return json;
 }
 
+/**
+ * Gets the coverage of added files.
+ *
+ * Takes the JSON file with Added file information and gets the
+ * test coverage of the added files and returns an array of coverage. 
+ *
+ * @since 1.0.0
+ *
+ * @return {Array} Array of objects with file name and coverage.
+ */
 async function checkAddedFileCoverage() {
   const files_added = await fs.readFile(
     `${process.env.HOME}/files_added.json`,
@@ -14,11 +36,24 @@ async function checkAddedFileCoverage() {
   var files_added_json = await parseJsonString(files_added);
   var addedFileCoverage = [];
   files_added_json.forEach((file) => {
-    addedFileCoverage.push(checkNewCoverage(file));
+    addedFileCoverage.push({file, checkNewCoverage(file)});
   });
   return addedFileCoverage;
 }
 
+/**
+ * Get coverage for given file.
+ *
+ * Takes file name, and getstest coverage of the file from the current
+ * coverage XML reports. Uses regular expression to find test coverage results
+ * from each report for the file and the coverage value is in the first group of the match.
+ *
+ * @since 1.0.0
+ *
+ * @param {String} filename name of file to compare coverage.
+ *
+ * @return {Number} Current coverage of file.
+ */
 async function checkNewCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
   const currentCoverageReport = await fs.readFile("./coverage.xml", "utf8");
@@ -26,6 +61,17 @@ async function checkNewCoverage(filename) {
   return currentCoverage[1];
 }
 
+/**
+ * Gets the coverage of modified files.
+ *
+ * Takes the JSON file with modified file information and gets the
+ * test coverage of the modified files and returns an array of file name,
+ * coverage and change in coverage. 
+ *
+ * @since 1.0.0
+ *
+ * @return {Array} Array of objects with file name and coverage and change in coverage.
+ */
 async function checkModifiedFileCoverage() {
   const files_modified = await fs.readFile(
     `${process.env.HOME}/files_modified.json`,
@@ -34,7 +80,8 @@ async function checkModifiedFileCoverage() {
   var files_modified_json = await parseJsonString(files_modified);
   var modifiedFileCoverage = [];
   files_modified_json.forEach((file) => {
-    modifiedFileCoverage.push(compareCoverage(file));
+    coverage = compareCoverage(file);
+    modifiedFileCoverage.push(file,coverage[0], coverage[1]);
   });
 }
 
@@ -49,7 +96,7 @@ async function checkModifiedFileCoverage() {
  *
  * @param {String} filename name of file to compare coverage.
  *
- * @return {Array} Change in coverage and current coverage of file.
+ * @return {Array} Current coverage of file and change in coverage .
  */
 async function compareCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
@@ -58,7 +105,7 @@ async function compareCoverage(filename) {
   var originalCoverage = coverageRegEx.exec(originalCoverageReport);
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   var coverageChange = originalCoverage[1] - currentCoverage[1];
-  return [coverageChange, currentCoverage[1]];
+  return [currentCoverage[1], coverageChange];
 }
 
 /**
