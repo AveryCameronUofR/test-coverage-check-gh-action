@@ -5,6 +5,27 @@ async function parseJsonString(jsonString) {
   const json = await JSON.parse(jsonString);
   return json;
 }
+
+async function checkAddedFileCoverage() {
+  const files_added = await fs.readFile(
+    `${process.env.HOME}/files_added.json`,
+    "utf8"
+  );
+  var files_added_json = await parseJsonString(files_added);
+  var addedFileCoverage = [];
+  files_added_json.forEach((file) => {
+    addedFileCoverage.push(checkNewCoverage(file));
+  });
+  return addedFileCoverage;
+}
+
+async function checkNewCoverage(filename) {
+  var coverageRegEx = makeRegEx(filename);
+  const currentCoverageReport = await fs.readFile("./coverage.xml", "utf8");
+  var currentCoverage = coverageRegEx.exec(currentCoverageReport);
+  return currentCoverage[1];
+}
+
 /**
  * Compare coverage reports test coverage for given file.
  *
