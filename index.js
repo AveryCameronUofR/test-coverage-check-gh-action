@@ -1,5 +1,10 @@
 const core = require("@actions/core");
 const { promises: fs } = require("fs");
+
+async function parseJsonString(jsonString) {
+  const json = await JSON.parse(jsonString);
+  return json;
+}
 /**
  * Compare coverage reports test coverage for given file.
  *
