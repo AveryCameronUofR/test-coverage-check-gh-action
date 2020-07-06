@@ -132,6 +132,20 @@ function makeRegEx(filename) {
   );
 }
 
+/**
+ * Create a markdown table for added file coverage.
+ *
+ * Creates a table using github markdown syntax for added files and their coverage
+ * Uses unicode checkmarks and x's to indicate pass fail easily, formats one file
+ * per column.
+ *
+ * @since 1.0.0
+ *
+ * @param {Array} addedFileCoverage array of objects with filename and coverage.
+ * @param {Array} minCoverage minimum coverage to pass.
+ * 
+ * @return {String} markdown table for added files. 
+ */
 function formatAddedCoverageReport(addedFileCoverage, minCoverage){
   var report =`
   | Added Files | Coverage |
@@ -141,11 +155,26 @@ function formatAddedCoverageReport(addedFileCoverage, minCoverage){
     var unicode =  "&#9989;";
     if (file.coverage < minCoverage)
       unicode =  "&#10060;";
-    report += `| ${file.filename} | ${file.coverage} ${unicode} |`;
+    report += `| ${file.filename} | ${file.coverage} ${unicode} |  \n`;
   });
   return report;
 }
 
+/**
+ * Create a markdown table for added file coverage.
+ *
+ * Creates a table using github markdown syntax for added files and their coverage
+ * Uses unicode checkmarks and x's to indicate pass fail easily, formats one file
+ * per column.
+ *
+ * @since 1.0.0
+ *
+ * @param {Array} modifiedFileCoverage array of objects with filename and coverage.
+ * @param {Array} minCoverage minimum coverage to pass.
+ * @param {Array} minCoverage maximum coverage to allow.
+ * 
+ * @return {String} markdown table for modified files and coverage. 
+ */
 function formatModifiedCoverageReport(modifiedFileCoverage, minCoverage, maxCoverageChange){
   var report =`
   | Modified Files | Coverage | Change in Coverage |
@@ -162,6 +191,7 @@ function formatModifiedCoverageReport(modifiedFileCoverage, minCoverage, maxCove
   });
   return report;
 }
+
 // most @actions toolkit packages have async methods
 async function run() {
   try {
