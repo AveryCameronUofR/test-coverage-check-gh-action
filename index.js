@@ -102,8 +102,12 @@ function compareCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
   const originalCoverageReport = fs.readFileSync("./coverage1.xml", "utf8");
   const currentCoverageReport = fs.readFileSync("./coverage.xml", "utf8");
-  var originalCoverage = coverageRegEx.exec(originalCoverageReport);
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
+  var originalCoverage = coverageRegEx.exec(originalCoverageReport);
+  if (originalCoverage === null){
+    originalCoverage = currentCoverage;
+  }
+  
   var coverageChange = originalCoverage[1] - currentCoverage[1];
   return [currentCoverage[1], coverageChange];
 }
@@ -132,6 +136,7 @@ async function run() {
   try {
     var modifiedFileCoverage = checkModifiedFileCoverage();
     var addedFileCoverage = checkAddedFileCoverage();
+    console.log(modifiedFileCoverage)
     const minCoverage = core.getInput("minNewCoverage");
     const maxCoverageChange = core.getInput("maxCoverageChange");
   } catch (error) {
