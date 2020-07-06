@@ -3,10 +3,10 @@ description: 'Check test coverage change of changed files'
 inputs:
   minNewCoverage:  # minimum new coverage
     description: 'minimum coverage a new file has to have to pass'
-    default: 80
+    default: 0.8
   maxCoverageChange: 
     description: 'Max amount coverage can reduce and pass'
-    default: 5
+    default: 0.5
 outputs:
   Coverage:
     description: 'Coverage of changed files'
