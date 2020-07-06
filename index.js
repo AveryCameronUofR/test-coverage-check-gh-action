@@ -1,5 +1,5 @@
 const core = require("@actions/core");
-const { promises: fs } = require("fs");
+const fs = require('fs');
 
 /**
  * Parse string to JSON object.
@@ -13,9 +13,8 @@ const { promises: fs } = require("fs");
  *
  * @return {JSON} Parsed JSON object.
  */
-async function parseJsonString(jsonString) {
-  const json = await JSON.parse(jsonString);
-  return json;
+function parseJsonString(jsonString) {
+  return JSON.parse(jsonString);
 }
 
 /**
@@ -28,15 +27,15 @@ async function parseJsonString(jsonString) {
  *
  * @return {Array} Array of objects with file name and coverage.
  */
-async function checkAddedFileCoverage() {
-  const files_added = await fs.readFile(
-    `${process.env.HOME}/files_added.json`,
+function checkAddedFileCoverage() {
+  const files_added = fs.readFileSync(
+    `./files_added.json`,
     "utf8"
   );
-  var files_added_json = await parseJsonString(files_added);
+  var files_added_json = parseJsonString(files_added);
   var addedFileCoverage = [];
   files_added_json.forEach((file) => {
-    addedFileCoverage.push({file, checkNewCoverage(file)});
+    addedFileCoverage.push({filename: file, coverage: checkNewCoverage(file)});
   });
   return addedFileCoverage;
 }
@@ -54,9 +53,9 @@ async function checkAddedFileCoverage() {
  *
  * @return {Number} Current coverage of file.
  */
-async function checkNewCoverage(filename) {
+function checkNewCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
-  const currentCoverageReport = await fs.readFile("./coverage.xml", "utf8");
+  const currentCoverageReport = fs.readFileSync("./coverage.xml", "utf8");
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   return currentCoverage[1];
 }
@@ -72,17 +71,18 @@ async function checkNewCoverage(filename) {
  *
  * @return {Array} Array of objects with file name and coverage and change in coverage.
  */
-async function checkModifiedFileCoverage() {
-  const files_modified = await fs.readFile(
-    `${process.env.HOME}/files_modified.json`,
+function checkModifiedFileCoverage() {
+  const files_modified = fs.readFileSync(
+    `./files_modified.json`,
     "utf8"
   );
-  var files_modified_json = await parseJsonString(files_modified);
+  var files_modified_json = parseJsonString(files_modified);
   var modifiedFileCoverage = [];
   files_modified_json.forEach((file) => {
     coverage = compareCoverage(file);
-    modifiedFileCoverage.push(file,coverage[0], coverage[1]);
+    modifiedFileCoverage.push({filename: file, coverage: coverage[0], coverageChange: coverage[1]});
   });
+  return modifiedFileCoverage;
 }
 
 /**
@@ -98,10 +98,10 @@ async function checkModifiedFileCoverage() {
  *
  * @return {Array} Current coverage of file and change in coverage .
  */
-async function compareCoverage(filename) {
+function compareCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
-  const originalCoverageReport = await fs.readFile("./coverage1.xml", "utf8");
-  const currentCoverageReport = await fs.readFile("./coverage.xml", "utf8");
+  const originalCoverageReport = fs.readFileSync("./coverage1.xml", "utf8");
+  const currentCoverageReport = fs.readFileSync("./coverage.xml", "utf8");
   var originalCoverage = coverageRegEx.exec(originalCoverageReport);
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   var coverageChange = originalCoverage[1] - currentCoverage[1];
@@ -130,6 +130,8 @@ function makeRegEx(filename) {
 // most @actions toolkit packages have async methods
 async function run() {
   try {
+    var modifiedFileCoverage = checkModifiedFileCoverage();
+    var addedFileCoverage = checkAddedFileCoverage();
     const minCoverage = core.getInput("minNewCoverage");
     const maxCoverageChange = core.getInput("maxCoverageChange");
   } catch (error) {
