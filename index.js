@@ -56,7 +56,7 @@ function checkAddedFileCoverage() {
  */
 function checkNewCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
-  const currentCoverageReport = fs.readFileSync("${process.env.HOME}/coverage.xml", "utf8");
+  const currentCoverageReport = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}./coverage.xml`, "utf8");
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   return currentCoverage[1];
 }
@@ -103,8 +103,8 @@ function checkModifiedFileCoverage() {
  */
 function compareCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
-  const originalCoverageReport = fs.readFileSync(`${process.env.HOME}/coverage1.xml`, "utf8");
-  const currentCoverageReport = fs.readFileSync(`${process.env.HOME}/coverage.xml`, "utf8");
+  const originalCoverageReport = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/coverage1.xml`, "utf8");
+  const currentCoverageReport = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/coverage.xml`, "utf8");
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   var originalCoverage = coverageRegEx.exec(originalCoverageReport);
   if (originalCoverage === null) originalCoverage = currentCoverage;
