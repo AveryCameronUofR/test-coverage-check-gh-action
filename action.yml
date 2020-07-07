@@ -10,7 +10,7 @@ inputs:
   maxCoverageChange: 
     description: 'Max amount coverage can reduce and pass'
     default: 0.5
-   token:
+  token:
     description: GitHub Personal Access Token
     required:    true
 runs:
