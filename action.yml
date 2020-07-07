@@ -9,9 +9,12 @@ inputs:
     default: 0.8
   maxCoverageChange: 
     description: 'Max amount coverage can reduce and pass'
-    default: 0.5
+    default: 0.1
   token:
     description: GitHub Personal Access Token
+    required:    true
+  branch:
+    description: Base ref branch to merge into and check cov against
     required:    true
 runs:
   using: 'node12'
