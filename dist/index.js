@@ -346,14 +346,14 @@ async function run() {
       maxCoverageChange
     );
 
-    const github_token = process.env['GITHUB_TOKEN'] || core.getInput('token');
+    const token = process.env['GITHUB_TOKEN'] || core.getInput('token');
     const context = github.context;
     if (context.payload.pull_request == null) {
       core.setFailed('No pull request found.');
       return;
     }
     const pull_request_number = context.payload.pull_request.number;
-    const octokit = new github.GitHub(github_token);
+    const octokit = new github.getOctokit(token);
     const added_comment = octokit.issues.createComment({
       ...context.repo,
       issue_number: pull_request_number,
