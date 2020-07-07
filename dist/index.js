@@ -166,7 +166,7 @@ function parseJsonString(jsonString) {
  * @return {Array} Array of objects with file name and coverage.
  */
 function checkAddedFileCoverage() {
-  const files_added = fs.readFileSync(`./files_added.json`, "utf8");
+  const files_added = fs.readFileSync(`${process.env.HOME}/files_added.json`, "utf8");
   var files_added_json = parseJsonString(files_added);
   var addedFileCoverage = [];
   files_added_json.forEach((file) => {
@@ -193,7 +193,7 @@ function checkAddedFileCoverage() {
  */
 function checkNewCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
-  const currentCoverageReport = fs.readFileSync("./coverage.xml", "utf8");
+  const currentCoverageReport = fs.readFileSync("${process.env.HOME}/coverage.xml", "utf8");
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   return currentCoverage[1];
 }
@@ -210,7 +210,7 @@ function checkNewCoverage(filename) {
  * @return {Array} Array of objects with file name and coverage and change in coverage.
  */
 function checkModifiedFileCoverage() {
-  const files_modified = fs.readFileSync(`./files_modified.json`, "utf8");
+  const files_modified = fs.readFileSync(`${process.env.HOME}/files_modified.json`, "utf8");
   var files_modified_json = parseJsonString(files_modified);
   var modifiedFileCoverage = [];
   files_modified_json.forEach((file) => {
@@ -240,8 +240,8 @@ function checkModifiedFileCoverage() {
  */
 function compareCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
-  const originalCoverageReport = fs.readFileSync("./coverage1.xml", "utf8");
-  const currentCoverageReport = fs.readFileSync("./coverage.xml", "utf8");
+  const originalCoverageReport = fs.readFileSync("${process.env.HOME}/coverage1.xml", "utf8");
+  const currentCoverageReport = fs.readFileSync("${process.env.HOME}/coverage.xml", "utf8");
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   var originalCoverage = coverageRegEx.exec(originalCoverageReport);
   if (originalCoverage === null) originalCoverage = currentCoverage;
