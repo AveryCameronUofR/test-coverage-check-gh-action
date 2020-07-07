@@ -103,8 +103,8 @@ function checkModifiedFileCoverage() {
  */
 function compareCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
-  const originalCoverageReport = fs.readFileSync("${process.env.HOME}/coverage1.xml", "utf8");
-  const currentCoverageReport = fs.readFileSync("${process.env.HOME}/coverage.xml", "utf8");
+  const originalCoverageReport = fs.readFileSync(`${process.env.HOME}/coverage1.xml`, "utf8");
+  const currentCoverageReport = fs.readFileSync(`${process.env.HOME}/coverage.xml`, "utf8");
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
   var originalCoverage = coverageRegEx.exec(originalCoverageReport);
   if (originalCoverage === null) originalCoverage = currentCoverage;
