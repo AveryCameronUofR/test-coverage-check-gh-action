@@ -197,7 +197,7 @@ function checkAddedFileCoverage() {
 function checkNewCoverage(filename) {
   var coverageRegEx = makeRegEx(filename);
   const currentCoverageReport = fs.readFileSync(
-    `${process.env.GITHUB_WORKSPACE}./coverage.xml`,
+    `${process.env.GITHUB_WORKSPACE}/coverage.xml`,
     "utf8"
   );
   var currentCoverage = coverageRegEx.exec(currentCoverageReport);
@@ -213,9 +213,11 @@ function checkNewCoverage(filename) {
  *
  * @since 1.0.0
  *
+ * @param {String} branch name of branch to compare coverage 
+ * 
  * @return {Array} Array of objects with file name and coverage and change in coverage.
  */
-function checkModifiedFileCoverage() {
+function checkModifiedFileCoverage(branch) {
   const files_modified = fs.readFileSync(
     `${process.env.HOME}/files_modified.json`,
     "utf8"
@@ -223,7 +225,7 @@ function checkModifiedFileCoverage() {
   var files_modified_json = parseJsonString(files_modified);
   var modifiedFileCoverage = [];
   files_modified_json.forEach((file) => {
-    coverage = compareCoverage(file);
+    coverage = compareCoverage(file, branch);
     if (coverage !== null)
       modifiedFileCoverage.push({
         filename: file,
@@ -244,13 +246,14 @@ function checkModifiedFileCoverage() {
  * @since 1.0.0
  *
  * @param {String} filename name of file to compare coverage.
+ * @param {String} branch branch to compare coverage.
  *
  * @return {Array} Current coverage of file and change in coverage .
  */
-function compareCoverage(filename) {
+function compareCoverage(filename, branch) {
   var coverageRegEx = makeRegEx(filename);
   const originalCoverageReport = fs.readFileSync(
-    `${process.env.GITHUB_WORKSPACE}/${process.env.BASE_BRANCH}-coverage.xml`,
+    `${process.env.GITHUB_WORKSPACE}/${branch}-coverage.xml`,
     "utf8"
   );
   const currentCoverageReport = fs.readFileSync(
@@ -381,7 +384,8 @@ function run() {
   try {
     const minCoverage = core.getInput("minNewCoverage");
     const maxCoverageChange = -1 * core.getInput("maxCoverageChange");
-    var modifiedFileCoverage = checkModifiedFileCoverage();
+    const branch = core.getInput("branch");
+    var modifiedFileCoverage = checkModifiedFileCoverage(branch);
     var addedFileCoverage = checkAddedFileCoverage();
 
     var addedReport = formatAddedCoverageReport(addedFileCoverage, minCoverage);
@@ -392,13 +396,14 @@ function run() {
     );
 
     const token = process.env["GITHUB_TOKEN"] || core.getInput("token");
+    const octokit = new github.getOctokit(token);
     const context = github.context;
     if (context.payload.pull_request == null) {
       core.setFailed("No pull request found.");
       return;
     }
     const pull_request_number = context.payload.pull_request.number;
-    const octokit = new github.getOctokit(token);
+    
     const added_comment = octokit.issues.createComment({
       ...context.repo,
       issue_number: pull_request_number,

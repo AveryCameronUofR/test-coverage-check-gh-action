@@ -245,18 +245,9 @@ function checkCoveragePassFail(
 
 function run() {
   try {
-    const token = process.env["GITHUB_TOKEN"] || core.getInput("token");
-    const octokit = new github.getOctokit(token);
-    const response = await octokit.pulls.get({
-      owner: owner,
-      repo: repo,
-      pull_number: prNumber
-    });
-
-    var branch =  response.data.head.ref;
-
     const minCoverage = core.getInput("minNewCoverage");
     const maxCoverageChange = -1 * core.getInput("maxCoverageChange");
+    const branch = core.getInput("branch");
     var modifiedFileCoverage = checkModifiedFileCoverage(branch);
     var addedFileCoverage = checkAddedFileCoverage();
 
@@ -267,7 +258,8 @@ function run() {
       maxCoverageChange
     );
 
-    
+    const token = process.env["GITHUB_TOKEN"] || core.getInput("token");
+    const octokit = new github.getOctokit(token);
     const context = github.context;
     if (context.payload.pull_request == null) {
       core.setFailed("No pull request found.");
