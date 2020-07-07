@@ -285,7 +285,7 @@ function run() {
       maxCoverageChange
     );
 
-    if (coverageOutcome) {
+    if (!coverageOutcome) {
       const coverage_comment = octokit.issues.createComment({
         ...context.repo,
         issue_number: pull_request_number,
