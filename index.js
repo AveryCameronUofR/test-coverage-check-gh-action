@@ -262,6 +262,15 @@ function checkCoveragePassFail(addedFileCoverage, modifiedFileCoverage, minCover
   return coveragePass;
 }
 
+/**
+ * Runs test coverage comparison.
+ *
+ * Gets inputs from GitHub. Checks added and modified file coverage. 
+ * Generates added and modified file coverage reports in markdown format.
+ * Adds reports to pull request via comment. Returns a pass/fail for coverage criteria.
+ *
+ * @since 1.0.0
+ */
 function run() {
   try {
     const minCoverage = core.getInput("minNewCoverage");
