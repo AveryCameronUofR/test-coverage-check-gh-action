@@ -166,17 +166,17 @@ function parseJsonString(jsonString) {
  * @return {Array} Array of objects with file name and coverage.
  */
 function checkAddedFileCoverage() {
-  const files_added = fs.readFileSync(
-    `${process.env.HOME}/files_added.json`,
-    "utf8"
-  );
-  var files_added_json = parseJsonString(files_added);
-  var addedFileCoverage = [];
+  const files_added = fs.readFileSync(`${process.env.HOME}/files_added.json`, "utf8");
+  const files_added_json = parseJsonString(files_added);
+  let addedFileCoverage = [];
   files_added_json.forEach((file) => {
-    addedFileCoverage.push({
-      filename: file,
-      coverage: checkNewCoverage(file),
-    });
+    let coverage = checkNewCoverage(file);
+    if (coverage) {
+      addedFileCoverage.push({
+        filename: file,
+        coverage: coverage,
+      });
+    }
   });
   return addedFileCoverage;
 }
@@ -195,13 +195,10 @@ function checkAddedFileCoverage() {
  * @return {Number} Current coverage of file.
  */
 function checkNewCoverage(filename) {
-  var coverageRegEx = makeRegEx(filename);
-  const currentCoverageReport = fs.readFileSync(
-    `${process.env.GITHUB_WORKSPACE}/coverage.xml`,
-    "utf8"
-  );
-  var currentCoverage = coverageRegEx.exec(currentCoverageReport);
-  return currentCoverage[1];
+  const coverageRegEx = makeRegEx(filename);
+  const currentCoverageReport = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/coverage.xml`, "utf8");
+  let currentCoverage = coverageRegEx.exec(currentCoverageReport);
+  return currentCoverage != null ? currentCoverage[1] : null;
 }
 
 /**
@@ -213,19 +210,16 @@ function checkNewCoverage(filename) {
  *
  * @since 1.0.0
  *
- * @param {String} branch name of branch to compare coverage 
- * 
+ * @param {String} branch name of branch to compare coverage
+ *
  * @return {Array} Array of objects with file name and coverage and change in coverage.
  */
 function checkModifiedFileCoverage(branch) {
-  const files_modified = fs.readFileSync(
-    `${process.env.HOME}/files_modified.json`,
-    "utf8"
-  );
-  var files_modified_json = parseJsonString(files_modified);
-  var modifiedFileCoverage = [];
+  const files_modified = fs.readFileSync(`${process.env.HOME}/files_modified.json`, "utf8");
+  const files_modified_json = parseJsonString(files_modified);
+  let modifiedFileCoverage = [];
   files_modified_json.forEach((file) => {
-    coverage = compareCoverage(file, branch);
+    let coverage = compareCoverage(file, branch);
     if (coverage !== null)
       modifiedFileCoverage.push({
         filename: file,
@@ -251,20 +245,23 @@ function checkModifiedFileCoverage(branch) {
  * @return {Array} Current coverage of file and change in coverage .
  */
 function compareCoverage(filename, branch) {
-  var coverageRegEx = makeRegEx(filename);
-  const originalCoverageReport = fs.readFileSync(
-    `${process.env.GITHUB_WORKSPACE}/${branch}-coverage.xml`,
-    "utf8"
-  );
-  const currentCoverageReport = fs.readFileSync(
-    `${process.env.GITHUB_WORKSPACE}/coverage.xml`,
-    "utf8"
-  );
-  var currentCoverage = coverageRegEx.exec(currentCoverageReport);
-  var originalCoverage = coverageRegEx.exec(originalCoverageReport);
-  if (originalCoverage === null) originalCoverage = currentCoverage;
+  const coverageRegEx = makeRegEx(filename);
+  const currentCoverageReport = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/coverage.xml`, "utf8");
+  let originalCoverageReport = currentCoverageReport;
+  //Check for the original coverage report (it may not exist on first run so use current coverage report)
+  try {
+    originalCoverageReport = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/${branch}-coverage.xml`, "utf8");
+  } catch {
+    console.log(
+      `${process.env.GITHUB_WORKSPACE}/${branch}-coverage.xml not found, comparing against original coverage`
+    );
+  }
+
+  let currentCoverage = coverageRegEx.exec(currentCoverageReport);
+  let originalCoverage = coverageRegEx.exec(originalCoverageReport);
   if (currentCoverage === null) return null;
-  var coverageChange = currentCoverage[1] - originalCoverage[1];
+  if (originalCoverage === null) originalCoverage = currentCoverage;
+  let coverageChange = currentCoverage[1] - originalCoverage[1];
   return [currentCoverage[1], coverageChange];
 }
 
@@ -282,9 +279,7 @@ function compareCoverage(filename, branch) {
  * @return {RegExp} Regular Expression that matches filename and provides coverage value as a group.
  */
 function makeRegEx(filename) {
-  return new RegExp(
-    `filename="${filename}" complexity="\\d*" line-rate="(\\d*\\.?\\d*)"`
-  );
+  return new RegExp(`filename="${filename}" complexity="\\d*" line-rate="(\\d*\\.?\\d*)"`);
 }
 
 /**
@@ -302,12 +297,12 @@ function makeRegEx(filename) {
  * @return {String} markdown table for added files.
  */
 function formatAddedCoverageReport(addedFileCoverage, minCoverage) {
-  var report = `
+  let report = `
   | Added Files | Coverage |
   |---|---|
   `;
   addedFileCoverage.forEach((file) => {
-    var unicode = "&#9989;";
+    let unicode = "&#9989;";
     if (file.coverage < minCoverage) unicode = "&#10060;";
     report += `| ${file.filename} | ${file.coverage} ${unicode} |  \n`;
   });
@@ -329,24 +324,53 @@ function formatAddedCoverageReport(addedFileCoverage, minCoverage) {
  *
  * @return {String} markdown table for modified files and coverage.
  */
-function formatModifiedCoverageReport(
-  modifiedFileCoverage,
-  minCoverage,
-  maxCoverageChange
-) {
-  var report = `
+function formatModifiedCoverageReport(modifiedFileCoverage, minCoverage, maxCoverageChange) {
+  let report = `
   | Modified Files | Coverage | Change in Coverage |
   |---|---|---|
   `;
   modifiedFileCoverage.forEach((file) => {
-    var unicodeCoverage = "&#9989;";
+    let unicodeCoverage = "&#9989;";
     if (file.coverage < minCoverage) unicodeCoverage = "&#10060;";
-    var unicodeCoverageChange = "&#9989;";
-    if (file.coverageChange < maxCoverageChange)
-      unicodeCoverageChange = "&#10060;";
+    let unicodeCoverageChange = "&#9989;";
+    if (file.coverageChange < maxCoverageChange) unicodeCoverageChange = "&#10060;";
     report += `| ${file.filename} | ${file.coverage} ${unicodeCoverage} |  ${file.coverageChange} ${unicodeCoverageChange} |  \n`;
   });
   return report;
+}
+
+/**
+ * Comments Coverage Reports on Pull Request.
+ *
+ * Adds pull request comment for added and modified file coverage to the
+ * pull request that was opened.
+ *
+ * @since 1.0.13
+ * @param {String} addedReport Markdown table report for added file coverage.
+ * @param {String} modifiedReport Markdown table report for modified file coverage.
+ *
+ */
+function commentCoverage(addedReport, modifiedReport) {
+  const token = process.env["GITHUB_TOKEN"] || core.getInput("token");
+  const octokit = new github.getOctokit(token);
+  const context = github.context;
+
+  if (context.payload.pull_request == null) {
+    core.setFailed("No pull request found.");
+    return;
+  }
+
+  const pull_request_number = context.payload.pull_request.number;
+  const added_comment = octokit.issues.createComment({
+    ...context.repo,
+    issue_number: pull_request_number,
+    body: addedReport,
+  });
+  const modified_comment = octokit.issues.createComment({
+    ...context.repo,
+    issue_number: pull_request_number,
+    body: modifiedReport,
+  });
 }
 
 /**
@@ -356,27 +380,22 @@ function formatModifiedCoverageReport(
  * and maxCoverageChange and returns a pass fail.
  *
  * @since 1.0.10
- * @param {Array} addedFileCoverage array of objects with filename and coverage. 
+ * @param {Array} addedFileCoverage array of objects with filename and coverage.
  * @param {Array} modifiedFileCoverage array of objects with filename and coverage.
  * @param {Array} minCoverage minimum coverage to pass.
  * @param {Array} maxCoverageChange maximum change in coverage to allow.
  *
  * @return {Boolean} Pass/Fail of change in coverage.
  */
-function checkCoveragePassFail(
-  addedFileCoverage,
-  modifiedFileCoverage,
-  minCoverage,
-  maxCoverageChange
-) {
-  var coveragePass = true;
+function checkCoveragePassFail(addedFileCoverage, modifiedFileCoverage, minCoverage, maxCoverageChange) {
+  let coveragePass = true;
   addedFileCoverage.forEach((file) => {
     if (file.coverage < minCoverage) coveragePass = false;
   });
   modifiedFileCoverage.forEach((file) => {
-    if (file.coverage < minCoverage || file.coverageChange < maxCoverageChange)
-      coveragePass = false;
+    if (file.coverage < minCoverage || file.coverageChange < maxCoverageChange) coveragePass = false;
   });
+
   return coveragePass;
 }
 
@@ -385,37 +404,15 @@ function run() {
     const minCoverage = core.getInput("minNewCoverage");
     const maxCoverageChange = -1 * core.getInput("maxCoverageChange");
     const branch = core.getInput("branch");
-    var modifiedFileCoverage = checkModifiedFileCoverage(branch);
-    var addedFileCoverage = checkAddedFileCoverage();
 
-    var addedReport = formatAddedCoverageReport(addedFileCoverage, minCoverage);
-    var modifiedReport = formatModifiedCoverageReport(
-      modifiedFileCoverage,
-      minCoverage,
-      maxCoverageChange
-    );
+    const addedFileCoverage = checkAddedFileCoverage();
+    const modifiedFileCoverage = checkModifiedFileCoverage(branch);
 
-    const token = process.env["GITHUB_TOKEN"] || core.getInput("token");
-    const octokit = new github.getOctokit(token);
-    const context = github.context;
-    if (context.payload.pull_request == null) {
-      core.setFailed("No pull request found.");
-      return;
-    }
-    const pull_request_number = context.payload.pull_request.number;
-    
-    const added_comment = octokit.issues.createComment({
-      ...context.repo,
-      issue_number: pull_request_number,
-      body: addedReport,
-    });
-    const modified_comment = octokit.issues.createComment({
-      ...context.repo,
-      issue_number: pull_request_number,
-      body: modifiedReport,
-    });
+    const addedReport = formatAddedCoverageReport(addedFileCoverage, minCoverage);
+    const modifiedReport = formatModifiedCoverageReport(modifiedFileCoverage, minCoverage, maxCoverageChange);
+    commentCoverage(addedReport, modifiedReport);
 
-    var coverageOutcome = checkCoveragePassFail(
+    const coverageOutcome = checkCoveragePassFail(
       addedFileCoverage,
       modifiedFileCoverage,
       minCoverage,
