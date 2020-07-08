@@ -1,4 +1,4 @@
-name: 'Test Coverage Change'
+name: 'Test Coverage Comparison of Added & Modified Files'
 description: 'Check test coverage change of changed files'
 branding:
   icon: 'bar-chart'  
